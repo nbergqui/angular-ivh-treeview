@@ -65,6 +65,20 @@ angular.module('ivh.treeview').provider('ivhTreeviewOptions', function() {
     expandedAttribute: '__ivhTreeviewExpanded',
 
     /**
+     * Whether or not directive should render children on initial load
+     * or when a node is expanded. Improves performance for large trees.
+     *
+     * Must opt-in.
+     */
+    renderChildrenOnExpand: false,
+
+    /**
+     * (internal) Collection item attribute to track which nodes have rendered
+     * children
+     */
+    renderChildrenAttribute: '__ivhTreeviewRenderChildren',
+
+    /**
      * Default selected state when validating
      */
     defaultSelectedState: true,
