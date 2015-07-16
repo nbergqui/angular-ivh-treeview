@@ -44,6 +44,7 @@ angular.module('ivh.treeview').directive('ivhTreeview', ['ivhTreeviewMgr', funct
       useCheckboxes: '=ivhTreeviewUseCheckboxes',
       validate: '=ivhTreeviewValidate',
       visibleAttribute: '=ivhTreeviewVisibleAttribute',
+      renderChildrenOnExpand: '=ivhTreeviewRenderChildrenOnExpand',
 
       // Generic options object
       userOptions: '=ivhTreeviewOptions',
@@ -75,7 +76,8 @@ angular.module('ivh.treeview').directive('ivhTreeview', ['ivhTreeviewMgr', funct
         'twistieLeafTpl',
         'useCheckboxes',
         'validate',
-        'visibleAttribute'
+        'visibleAttribute',
+        'renderChildrenOnExpand'
       ], function(attr) {
         if(ng.isDefined($scope[attr])) {
           localOpts[attr] = $scope[attr];
@@ -247,6 +249,10 @@ angular.module('ivh.treeview').directive('ivhTreeview', ['ivhTreeviewMgr', funct
        * @param {Boolean} isExpanded Whether to expand (`true`) or collapse
        */
       trvw.expand = function(node, isExpanded) {
+        if (isExpanded) {
+          node[localOpts.renderChildrenAttribute] = true;
+        }
+
         ivhTreeviewMgr.expand($scope.root, node, localOpts, isExpanded);
       };
 
@@ -258,6 +264,18 @@ angular.module('ivh.treeview').directive('ivhTreeview', ['ivhTreeviewMgr', funct
        */
       trvw.isExpanded = function(node) {
         return node[localOpts.expandedAttribute];
+      };
+
+      /**
+       * Returns whether to render the node's children based on the value
+       * of the renderChildrenOnExpand option
+       *
+       * @param {Object} node The node to render the children of
+       * @return {Boolean}
+       */
+      trvw.renderChildren = function(node) {
+        return localOpts.renderChildrenOnExpand ?
+          node[localOpts.renderChildrenAttribute] : trvw.children(node).length;
       };
 
       /**
