@@ -249,10 +249,6 @@ angular.module('ivh.treeview').directive('ivhTreeview', ['ivhTreeviewMgr', funct
        * @param {Boolean} isExpanded Whether to expand (`true`) or collapse
        */
       trvw.expand = function(node, isExpanded) {
-        if (isExpanded) {
-          node[localOpts.renderChildrenAttribute] = true;
-        }
-
         ivhTreeviewMgr.expand($scope.root, node, localOpts, isExpanded);
       };
 
