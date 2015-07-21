@@ -302,15 +302,22 @@ angular.module('ivh.treeview')
       isExpanded = ng.isDefined(isExpanded) ? isExpanded : true;
 
       var useId = ng.isString(node)
-        , expandedAttr = opts.expandedAttribute;
+        , expandedAttr = opts.expandedAttribute
+        , renderChildrenAttr = opts.renderChildrenAttribute;
 
       if(!useId) {
         // No need to do any searching if we already have the node in hand
+        if (isExpanded) {
+          node[renderChildrenAttr] = true;
+        }
         node[expandedAttr] = isExpanded;
         return exports;
       }
 
       return findNode(tree, node, opts, function(n, p) {
+        if (isExpanded) {
+          node[renderChildrenAttr] = true;
+        }
         n[expandedAttr] = isExpanded;
         return exports;
       });
@@ -345,6 +352,7 @@ angular.module('ivh.treeview')
 
       var useId = ng.isString(node)
         , expandedAttr = opts.expandedAttribute
+        , renderChildrenAttr = opts.renderChildrenAttribute
         , branch;
 
       // If we have an ID first resolve it to an actual node in the tree
@@ -358,6 +366,9 @@ angular.module('ivh.treeview')
 
       if(branch) {
         ivhTreeviewBfs(branch, opts, function(n, p) {
+          if (isExpanded) {
+            node[renderChildrenAttr] = true;
+          }
           n[expandedAttr] = isExpanded;
         });
       }
@@ -412,9 +423,13 @@ angular.module('ivh.treeview')
       opts = ng.extend({}, options, opts);
       isExpanded = ng.isDefined(isExpanded) ? isExpanded : true;
 
-      var expandedAttr = opts.expandedAttribute;
+      var expandedAttr = opts.expandedAttribute
+        , renderChildrenAttr = opts.renderChildrenAttribute;
 
       var expandCollapseNode = function(n) {
+        if (isExpanded) {
+          n[renderChildrenAttr] = true;
+        }
         n[expandedAttr] = isExpanded;
       };
 
