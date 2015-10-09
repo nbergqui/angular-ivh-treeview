@@ -1,5 +1,4 @@
+.idea
 node_modules
 bower_components
-test.html
 .tmp
-.idea
