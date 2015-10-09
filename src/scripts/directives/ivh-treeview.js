@@ -319,18 +319,6 @@ angular.module('ivh.treeview').directive('ivhTreeview', ['ivhTreeviewMgr', funct
       };
 
       /**
-       * Returns whether to render the node's children based on the value
-       * of the renderChildrenOnExpand option
-       *
-       * @param {Object} node The node to render the children of
-       * @return {Boolean}
-       */
-      trvw.renderChildren = function(node) {
-        return localOpts.renderChildrenOnExpand ?
-          node[localOpts.renderChildrenAttribute] : trvw.children(node).length;
-      };
-
-      /**
        * Toggle the expanded state of a given node
        *
        * @param {Object} node The node to toggle
