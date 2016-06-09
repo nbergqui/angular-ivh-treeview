@@ -24,6 +24,9 @@ aid in styling:
 ```
 ul.ivh-treeview
   li.ivh-treeview-node[?.ivh-treeview-node-collapsed][?.ivh-treeview-node-leaf]
+
+    <!-- begin node template -->
+
     .ivh-treeview-node-content
       .ivh-treeview-twistie-wrapper
         .ivh-treeview-twistie
@@ -35,6 +38,7 @@ ul.ivh-treeview
       .ivh-treeview-node-label
       ul.ivh-treeview
         [... more nodes]
+
   [... more nodes]
 ```
 
@@ -129,6 +133,11 @@ that all support both element and attribute level usage:
 
 A reference to the tree node itself. Note that in general you should use
 controller helper methods to access node properties when possible.
+
+**`depth`**
+
+The depth of the current node in the tree. The root node will be at depth `0`,
+its children will be at depth `1`, etc.
 
 **`trvw`**
 

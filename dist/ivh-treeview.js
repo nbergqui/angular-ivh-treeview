@@ -143,8 +143,13 @@ angular.module('ivh.treeview').directive('ivhTreeviewNode', ['ivhTreeviewCompile
           scope.trvw = trvw;
           scope.childDepth = scope.depth + 1;
 
-          // Expand/collapse the node as dictated by the expandToDepth property
-          trvw.expand(node, trvw.isInitiallyExpanded(scope.depth));
+          // Expand/collapse the node as dictated by the expandToDepth property.
+          // Note that we will respect the expanded state of this node if it has
+          // been expanded by e.g. `ivhTreeviewMgr.expandTo` but not yet
+          // rendered.
+          if(!trvw.isExpanded(node)) {
+            trvw.expand(node, trvw.isInitiallyExpanded(scope.depth));
+          }
 
           /**
            * @todo Provide a way to opt out of this
@@ -901,7 +906,7 @@ angular.module('ivh.treeview')
     };
 
     var findNode = function(tree, node, opts, cb) {
-      var useId = ng.isString(node)
+      var useId = isId(node)
         , proceed = true
         , idAttr = opts.idAttribute;
 
@@ -925,6 +930,10 @@ angular.module('ivh.treeview')
       });
 
       return cb(foundNode, foundParents);
+    };
+
+    var isId = function(val) {
+      return ng.isString(val) || ng.isNumber(val);
     };
 
     /**
@@ -951,7 +960,7 @@ angular.module('ivh.treeview')
       opts = ng.extend({}, options, opts);
       isSelected = ng.isDefined(isSelected) ? isSelected : true;
 
-      var useId = ng.isString(node)
+      var useId = isId(node)
         , proceed = true
         , idAttr = opts.idAttribute;
 
@@ -1144,7 +1153,7 @@ angular.module('ivh.treeview')
       opts = ng.extend({}, options, opts);
       isExpanded = ng.isDefined(isExpanded) ? isExpanded : true;
 
-      var useId = ng.isString(node)
+      var useId = isId(node)
         , expandedAttr = opts.expandedAttribute
         , renderChildrenAttr = opts.renderChildrenAttribute;
 
@@ -1193,7 +1202,7 @@ angular.module('ivh.treeview')
       opts = ng.extend({}, options, opts);
       isExpanded = ng.isDefined(isExpanded) ? isExpanded : true;
 
-      var useId = ng.isString(node)
+      var useId = isId(node)
         , expandedAttr = opts.expandedAttribute
         , renderChildrenAttr = opts.renderChildrenAttribute
         , branch;
@@ -1359,12 +1368,12 @@ angular.module('ivh.treeview').provider('ivhTreeviewOptions', function() {
     validate: true,
 
     /**
-     * (internal) Collection item attribute to track intermediate states
+     * Collection item attribute to track intermediate states
      */
     indeterminateAttribute: '__ivhTreeviewIndeterminate',
 
     /**
-     * (internal) Collection item attribute to track expanded status
+     * Collection item attribute to track expanded status
      */
     expandedAttribute: '__ivhTreeviewExpanded',
 

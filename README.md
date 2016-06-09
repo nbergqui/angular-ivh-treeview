@@ -48,7 +48,7 @@
 IVH Treeview can be installed with bower and npm:
 
 ```
-bower install angular-ivh-treeivew
+bower install angular-ivh-treeview
 # or
 npm install angular-ivh-treeview
 ```
@@ -58,6 +58,15 @@ Once installed, include the following files in your app:
 - `dist/ivh-treeview.js`
 - `dist/ivh-treeview.css`
 - `dist/ivh-treeview-theme-basic.css` (optional minimalist theme)
+
+And add the `ivh.treeview` module to your main Angular module:
+
+```javascript
+angular.module('myApp', [
+  'ivh.treeview'
+  // other module dependencies...
+]);
+```
 
 You're now ready to use the `ivh-treeview` directive, `ivhTreeviewMgr` service,
 and `ivhTreeviewBfs` service.
@@ -144,6 +153,7 @@ app.config(function(ivhTreeviewOptionsProvider) {
     useCheckboxes: true,
     expandToDepth: 0,
     indeterminateAttribute: '__ivhTreeviewIndeterminate',
+    expandedAttribute: '__ivhTreeviewExpanded',
     defaultSelectedState: true,
     validate: true,
     twistieExpandedTpl: '(-)',
@@ -154,10 +164,69 @@ app.config(function(ivhTreeviewOptionsProvider) {
 });
 ```
 
+Note that you can also use the `ivhTreeviewOptions` service to inspect global
+options at runtime. For an explanation of each option see the comments in the
+[source for ivhTreeviewOptions][trvw-opts].
+
+```javascript
+app.controller('MyCtrl', function(ivhTreeviewOptions) {
+  var opts = ivhTreeviewOptions();
+
+  // opts.idAttribute === 'id'
+  // opts.labelAttribute === 'label'
+  // opts.childrenAttribute === 'children'
+  // opts.selectedAttribute === 'selected'
+  // opts.useCheckboxes === true
+  // opts.expandToDepth === 0
+  // opts.indeterminateAttribute === '__ivhTreeviewIndeterminate'
+  // opts.expandedAttribute === '__ivhTreeviewExpanded'
+  // opts.defaultSelectedState === true
+  // opts.validate === true
+  // opts.twistieExpandedTpl === '(-)'
+  // opts.twistieCollapsedTpl === '(+)'
+  // opts.twistieLeafTpl === 'o'
+  // opts.nodeTpl =(eh)= '...'
+});
+
+```
+
+
 ### Filtering
 
 We support filtering through the `ivh-treeview-filter` attribute, this value is
 supplied to Angular's `filterFilter` and applied to each node individually.
+
+IVH Treeview uses `ngHide` to hide filtered out nodes. If you would like to
+customize the hide/show behavior of nodes as they are filtered in and out of
+view (e.g. with `ngAnimate`) you can target elements with elements with the
+`.ivh-treeview-node` class:
+
+```css
+/* with e.g. keyframe animations */
+.ivh-treeview-node.ng-enter {
+  animation: my-enter-animation 0.5s linear;
+}
+
+.ivh-treeview-node.ng-leave {
+  animation: my-leave-animation 0.5s linear;
+}
+
+/* or class based animations */
+.ivh-treeview-node.ng-hide {
+  transition: 0.5s linear all;
+  opacity: 0;
+}
+
+/* alternatively, just strike-through filtered out nodes */
+.ivh-treeview-node.ng-hide {
+  display: block !important;
+}
+
+.ivh-treeview-node.ng-hide .ivh-treeview-node-label {
+  color: red;
+  text-decoration: line-through;
+}
+```
 
 ***Demo***: [Filtering](http://jsbin.com/zitiri/edit?html,output)
 
@@ -524,6 +593,7 @@ guidelines](https://github.com/iVantage/Contribution-Guidelines).
 
 ## Release History
 
+- 2015-11-29 v1.0.2 Allow numeric ids as well ass tring ids
 - 2015-09-23 v1.0.0 Use expressions rather than callbacks for change/toggle
   handlers, update default template. See MIGRATING doc for breaking changes.
 - 2015-05-06 v0.10.0 Make node templates customizable
@@ -544,3 +614,4 @@ guidelines](https://github.com/iVantage/Contribution-Guidelines).
 [bootstrap]: http://getbootstrap.com/
 [travis-img]: https://travis-ci.org/iVantage/angular-ivh-treeview.svg?branch=master
 [travis-link]: https://travis-ci.org/iVantage/angular-ivh-treeview
+[trvw-opts]: https://github.com/iVantage/angular-ivh-treeview/blob/master/src/scripts/services/ivh-treeview-options.js#L13-L103
