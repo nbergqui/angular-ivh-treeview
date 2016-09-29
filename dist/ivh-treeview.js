@@ -9,6 +9,28 @@ angular.module('ivh.treeview', []);
 
 
 /**
+ * Supports non-default interpolation symbols
+ *
+ * @package ivh.treeview
+ * @copyright 2016 iVantage Health Analytics, Inc.
+ */
+
+angular.module('ivh.treeview').constant('ivhTreeviewInterpolateEndSymbol', '}}');
+
+
+
+/**
+ * Supports non-default interpolation symbols
+ *
+ * @package ivh.treeview
+ * @copyright 2016 iVantage Health Analytics, Inc.
+ */
+
+angular.module('ivh.treeview').constant('ivhTreeviewInterpolateStartSymbol', '{{');
+
+
+
+/**
  * Selection management logic for treeviews with checkboxes
  *
  * @private
@@ -1319,8 +1341,13 @@ angular.module('ivh.treeview')
  * @copyright 2014 iVantage Health Analytics, Inc.
  */
 
-angular.module('ivh.treeview').provider('ivhTreeviewOptions', function() {
+angular.module('ivh.treeview').provider('ivhTreeviewOptions', [
+    'ivhTreeviewInterpolateStartSymbol', 'ivhTreeviewInterpolateEndSymbol',
+    function(ivhTreeviewInterpolateStartSymbol, ivhTreeviewInterpolateEndSymbol) {
   'use strict';
+
+  var symbolStart = ivhTreeviewInterpolateStartSymbol
+    , symbolEnd = ivhTreeviewInterpolateEndSymbol;
 
   var options = {
     /**
@@ -1428,6 +1455,8 @@ angular.module('ivh.treeview').provider('ivhTreeviewOptions', function() {
         '<div ivh-treeview-children></div>',
       '</div>'
     ].join('\n')
+    .replace(new RegExp('{{', 'g'), symbolStart)
+    .replace(new RegExp('}}', 'g'), symbolEnd)
   };
 
   /**
@@ -1449,4 +1478,4 @@ angular.module('ivh.treeview').provider('ivhTreeviewOptions', function() {
       return angular.copy(options);
     };
   };
-});
+}]);
