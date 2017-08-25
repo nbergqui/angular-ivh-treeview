@@ -130,7 +130,7 @@ angular.module('ivh.treeview').directive('ivhTreeviewChildren', function() {
     restrict: 'AE',
     require: '^ivhTreeviewNode',
     template: [
-      '<ul ng-if="getChildren().length" class="ivh-treeview">',
+      '<ul ng-if="trvw.renderChildren(node)" class="ivh-treeview">',
         '<li ng-repeat="child in getChildren()"',
             'ng-hide="trvw.hasFilter() && !trvw.isVisible(child)"',
             'class="ivh-treeview-node"',
@@ -352,6 +352,7 @@ angular.module('ivh.treeview').directive('ivhTreeview', ['ivhTreeviewMgr', funct
       useCheckboxes: '=ivhTreeviewUseCheckboxes',
       validate: '=ivhTreeviewValidate',
       visibleAttribute: '=ivhTreeviewVisibleAttribute',
+      renderChildrenOnExpand: '=ivhTreeviewRenderChildrenOnExpand',
 
       // Generic options object
       userOptions: '=ivhTreeviewOptions',
@@ -386,7 +387,8 @@ angular.module('ivh.treeview').directive('ivhTreeview', ['ivhTreeviewMgr', funct
         'twistieLeafTpl',
         'useCheckboxes',
         'validate',
-        'visibleAttribute'
+        'visibleAttribute',
+        'renderChildrenOnExpand'
       ], function(attr) {
         if(ng.isDefined($scope[attr])) {
           localOpts[attr] = $scope[attr];
@@ -611,6 +613,18 @@ angular.module('ivh.treeview').directive('ivhTreeview', ['ivhTreeviewMgr', funct
        */
       trvw.isExpanded = function(node) {
         return node[localOpts.expandedAttribute];
+      };
+
+      /**
+       * Returns whether to render the node's children based on the value
+       * of the renderChildrenOnExpand option
+       *
+       * @param {Object} node The node to render the children of
+       * @return {Boolean}
+       */
+      trvw.renderChildren = function(node) {
+        return localOpts.renderChildrenOnExpand ?
+          node[localOpts.renderChildrenAttribute] : trvw.children(node).length;
       };
 
       /**
@@ -1176,15 +1190,22 @@ angular.module('ivh.treeview')
       isExpanded = ng.isDefined(isExpanded) ? isExpanded : true;
 
       var useId = isId(node)
-        , expandedAttr = opts.expandedAttribute;
+        , expandedAttr = opts.expandedAttribute
+        , renderChildrenAttr = opts.renderChildrenAttribute;
 
       if(!useId) {
         // No need to do any searching if we already have the node in hand
+        if (isExpanded) {
+          node[renderChildrenAttr] = true;
+        }
         node[expandedAttr] = isExpanded;
         return exports;
       }
 
       return findNode(tree, node, opts, function(n, p) {
+        if (isExpanded) {
+          n[renderChildrenAttr] = true;
+        }
         n[expandedAttr] = isExpanded;
         return exports;
       });
@@ -1219,6 +1240,7 @@ angular.module('ivh.treeview')
 
       var useId = isId(node)
         , expandedAttr = opts.expandedAttribute
+        , renderChildrenAttr = opts.renderChildrenAttribute
         , branch;
 
       // If we have an ID first resolve it to an actual node in the tree
@@ -1232,6 +1254,9 @@ angular.module('ivh.treeview')
 
       if(branch) {
         ivhTreeviewBfs(branch, opts, function(n, p) {
+          if (isExpanded) {
+            n[renderChildrenAttr] = true;
+          }
           n[expandedAttr] = isExpanded;
         });
       }
@@ -1286,9 +1311,13 @@ angular.module('ivh.treeview')
       opts = ng.extend({}, options, opts);
       isExpanded = ng.isDefined(isExpanded) ? isExpanded : true;
 
-      var expandedAttr = opts.expandedAttribute;
+      var expandedAttr = opts.expandedAttribute
+        , renderChildrenAttr = opts.renderChildrenAttribute;
 
       var expandCollapseNode = function(n) {
+        if (isExpanded) {
+          n[renderChildrenAttr] = true;
+        }
         n[expandedAttr] = isExpanded;
       };
 
@@ -1396,6 +1425,20 @@ angular.module('ivh.treeview').provider('ivhTreeviewOptions', [
      * Collection item attribute to track expanded status
      */
     expandedAttribute: '__ivhTreeviewExpanded',
+
+    /**
+     * Whether or not directive should render children on initial load
+     * or when a node is expanded. Improves performance for large trees.
+     *
+     * Must opt-in.
+     */
+    renderChildrenOnExpand: false,
+
+    /**
+     * (internal) Collection item attribute to track which nodes have rendered
+     * children
+     */
+    renderChildrenAttribute: '__ivhTreeviewRenderChildren',
 
     /**
      * Default selected state when validating

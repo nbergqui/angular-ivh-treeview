@@ -324,7 +324,7 @@ angular.module('ivh.treeview')
 
       return findNode(tree, node, opts, function(n, p) {
         if (isExpanded) {
-          node[renderChildrenAttr] = true;
+          n[renderChildrenAttr] = true;
         }
         n[expandedAttr] = isExpanded;
         return exports;
@@ -375,7 +375,7 @@ angular.module('ivh.treeview')
       if(branch) {
         ivhTreeviewBfs(branch, opts, function(n, p) {
           if (isExpanded) {
-            node[renderChildrenAttr] = true;
+            n[renderChildrenAttr] = true;
           }
           n[expandedAttr] = isExpanded;
         });
