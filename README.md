@@ -37,7 +37,7 @@
 - [Tree Traversal](#tree-traversal)
     - [`ivhTreeviewBfs(tree[, opts][, cb])`](#ivhtreeviewbfstree-opts-cb)
 - [Optimizations and Known Limitations](#optimizations-and-known-limitations)
-- [Reporting Issues](#reporting-issues)
+- [Reporting Issues](#reporting-issues-and-getting-help)
 - [Contributing](#contributing)
 - [Release History](#release-history)
 - [License](#license)
@@ -151,6 +151,7 @@ app.config(function(ivhTreeviewOptionsProvider) {
     childrenAttribute: 'children',
     selectedAttribute: 'selected',
     useCheckboxes: true,
+    disableCheckboxSelectionPropagation: false,
     expandToDepth: 0,
     indeterminateAttribute: '__ivhTreeviewIndeterminate',
     expandedAttribute: '__ivhTreeviewExpanded',
@@ -177,6 +178,7 @@ app.controller('MyCtrl', function(ivhTreeviewOptions) {
   // opts.childrenAttribute === 'children'
   // opts.selectedAttribute === 'selected'
   // opts.useCheckboxes === true
+  // opts.disableCheckboxSelectionPropagation === false
   // opts.expandToDepth === 0
   // opts.indeterminateAttribute === '__ivhTreeviewIndeterminate'
   // opts.expandedAttribute === '__ivhTreeviewExpanded'

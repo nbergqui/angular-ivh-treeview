@@ -61,6 +61,12 @@ angular.module('ivh.treeview').directive('ivhTreeviewCheckboxHelper', [function(
       // Enforce consistent behavior across browsers by making indeterminate
       // checkboxes become checked when clicked/selected using spacebar
       scope.resolveIndeterminateClick = function() {
+
+        //intermediate state is not handled when CheckBoxes state propagation is disabled
+        if (opts.disableCheckboxSelectionPropagation) {
+          return;
+        }
+
         if(node[indeterminateAttr]) {
           trvw.select(node, true);
         }
@@ -71,10 +77,12 @@ angular.module('ivh.treeview').directive('ivhTreeviewCheckboxHelper', [function(
         scope.isSelected = newVal;
       });
 
-      // Update the checkbox when the node's indeterminate status changes
-      scope.$watch('node.' + indeterminateAttr, function(newVal, oldVal) {
-        element.find('input').prop('indeterminate', newVal);
-      });
+      if (!opts.disableCheckboxSelectionPropagation) {
+        // Update the checkbox when the node's indeterminate status changes
+        scope.$watch('node.' + indeterminateAttr, function(newVal, oldVal) {
+          element.find('input').prop('indeterminate', newVal);
+        });
+      }
     },
     template: [
       '<input type="checkbox"',
@@ -122,7 +130,7 @@ angular.module('ivh.treeview').directive('ivhTreeviewChildren', function() {
     restrict: 'AE',
     require: '^ivhTreeviewNode',
     template: [
-      '<ul ng-if="trvw.renderChildren(node)" class="ivh-treeview">',
+      '<ul ng-if="getChildren().length" class="ivh-treeview">',
         '<li ng-repeat="child in getChildren()"',
             'ng-hide="trvw.hasFilter() && !trvw.isVisible(child)"',
             'class="ivh-treeview-node"',
@@ -328,6 +336,7 @@ angular.module('ivh.treeview').directive('ivhTreeview', ['ivhTreeviewMgr', funct
       // Specific config options
       childrenAttribute: '=ivhTreeviewChildrenAttribute',
       defaultSelectedState: '=ivhTreeviewDefaultSelectedState',
+      disableCheckboxSelectionPropagation: '=ivhTreeviewDisableCheckboxSelectionPropagation',
       expandToDepth: '=ivhTreeviewExpandToDepth',
       idAttribute: '=ivhTreeviewIdAttribute',
       indeterminateAttribute: '=ivhTreeviewIndeterminateAttribute',
@@ -343,7 +352,6 @@ angular.module('ivh.treeview').directive('ivhTreeview', ['ivhTreeviewMgr', funct
       useCheckboxes: '=ivhTreeviewUseCheckboxes',
       validate: '=ivhTreeviewValidate',
       visibleAttribute: '=ivhTreeviewVisibleAttribute',
-      renderChildrenOnExpand: '=ivhTreeviewRenderChildrenOnExpand',
 
       // Generic options object
       userOptions: '=ivhTreeviewOptions',
@@ -365,6 +373,7 @@ angular.module('ivh.treeview').directive('ivhTreeview', ['ivhTreeviewMgr', funct
       ng.forEach([
         'childrenAttribute',
         'defaultSelectedState',
+        'disableCheckboxSelectionPropagation',
         'expandToDepth',
         'idAttribute',
         'indeterminateAttribute',
@@ -377,8 +386,7 @@ angular.module('ivh.treeview').directive('ivhTreeview', ['ivhTreeviewMgr', funct
         'twistieLeafTpl',
         'useCheckboxes',
         'validate',
-        'visibleAttribute',
-        'renderChildrenOnExpand'
+        'visibleAttribute'
       ], function(attr) {
         if(ng.isDefined($scope[attr])) {
           localOpts[attr] = $scope[attr];
@@ -603,18 +611,6 @@ angular.module('ivh.treeview').directive('ivhTreeview', ['ivhTreeviewMgr', funct
        */
       trvw.isExpanded = function(node) {
         return node[localOpts.expandedAttribute];
-      };
-
-      /**
-       * Returns whether to render the node's children based on the value
-       * of the renderChildrenOnExpand option
-       *
-       * @param {Object} node The node to render the children of
-       * @return {Boolean}
-       */
-      trvw.renderChildren = function(node) {
-        return localOpts.renderChildrenOnExpand ?
-          node[localOpts.renderChildrenAttribute] : trvw.children(node).length;
       };
 
       /**
@@ -927,6 +923,10 @@ angular.module('ivh.treeview')
       }
     };
 
+    var isId = function(val) {
+      return ng.isString(val) || ng.isNumber(val);
+    };
+
     var findNode = function(tree, node, opts, cb) {
       var useId = isId(node)
         , proceed = true
@@ -952,10 +952,6 @@ angular.module('ivh.treeview')
       });
 
       return cb(foundNode, foundParents);
-    };
-
-    var isId = function(val) {
-      return ng.isString(val) || ng.isNumber(val);
     };
 
     /**
@@ -999,8 +995,12 @@ angular.module('ivh.treeview')
             makeSelected.bind(opts) :
             makeDeselected.bind(opts);
 
-          ivhTreeviewBfs(n, opts, cb);
-          ng.forEach(p, validateParent.bind(opts));
+          if (opts.disableCheckboxSelectionPropagation) {
+            cb(n);
+          } else {
+            ivhTreeviewBfs(n, opts, cb);
+            ng.forEach(p, validateParent.bind(opts));
+          }
         }
 
         return proceed;
@@ -1176,22 +1176,15 @@ angular.module('ivh.treeview')
       isExpanded = ng.isDefined(isExpanded) ? isExpanded : true;
 
       var useId = isId(node)
-        , expandedAttr = opts.expandedAttribute
-        , renderChildrenAttr = opts.renderChildrenAttribute;
+        , expandedAttr = opts.expandedAttribute;
 
       if(!useId) {
         // No need to do any searching if we already have the node in hand
-        if (isExpanded) {
-          node[renderChildrenAttr] = true;
-        }
         node[expandedAttr] = isExpanded;
         return exports;
       }
 
       return findNode(tree, node, opts, function(n, p) {
-        if (isExpanded) {
-          node[renderChildrenAttr] = true;
-        }
         n[expandedAttr] = isExpanded;
         return exports;
       });
@@ -1226,7 +1219,6 @@ angular.module('ivh.treeview')
 
       var useId = isId(node)
         , expandedAttr = opts.expandedAttribute
-        , renderChildrenAttr = opts.renderChildrenAttribute
         , branch;
 
       // If we have an ID first resolve it to an actual node in the tree
@@ -1240,9 +1232,6 @@ angular.module('ivh.treeview')
 
       if(branch) {
         ivhTreeviewBfs(branch, opts, function(n, p) {
-          if (isExpanded) {
-            node[renderChildrenAttr] = true;
-          }
           n[expandedAttr] = isExpanded;
         });
       }
@@ -1297,13 +1286,9 @@ angular.module('ivh.treeview')
       opts = ng.extend({}, options, opts);
       isExpanded = ng.isDefined(isExpanded) ? isExpanded : true;
 
-      var expandedAttr = opts.expandedAttribute
-        , renderChildrenAttr = opts.renderChildrenAttribute;
+      var expandedAttr = opts.expandedAttribute;
 
       var expandCollapseNode = function(n) {
-        if (isExpanded) {
-          n[renderChildrenAttr] = true;
-        }
         n[expandedAttr] = isExpanded;
       };
 
@@ -1390,6 +1375,14 @@ angular.module('ivh.treeview').provider('ivhTreeviewOptions', [
     useCheckboxes: true,
 
     /**
+     * If set to true the checkboxes are independent on each other (no state
+     * propagation to children and revalidation of parents' states).
+     * If you set to true, you should set also `validate` property to `false`
+     * and avoid explicit calling of `ivhTreeviewMgr.validate()`.
+     */
+    disableCheckboxSelectionPropagation: false,
+
+    /**
      * Whether or not directive should validate treestore on startup
      */
     validate: true,
@@ -1403,20 +1396,6 @@ angular.module('ivh.treeview').provider('ivhTreeviewOptions', [
      * Collection item attribute to track expanded status
      */
     expandedAttribute: '__ivhTreeviewExpanded',
-
-    /**
-     * Whether or not directive should render children on initial load
-     * or when a node is expanded. Improves performance for large trees.
-     *
-     * Must opt-in.
-     */
-    renderChildrenOnExpand: false,
-
-    /**
-     * (internal) Collection item attribute to track which nodes have rendered
-     * children
-     */
-    renderChildrenAttribute: '__ivhTreeviewRenderChildren',
 
     /**
      * Default selected state when validating
